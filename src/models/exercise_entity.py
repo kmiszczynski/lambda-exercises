@@ -13,6 +13,7 @@ class ExerciseEntity:
     description: str
     difficulty_level: str
     image_key: str
+    instructions: Optional[str] = None
     thumbnail_image_key: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -33,6 +34,7 @@ class ExerciseEntity:
             description=item.get("description", ""),
             difficulty_level=item.get("difficultyLevel", ""),
             image_key=item.get("imageKey", ""),
+            instructions=item.get("instructions"),
             thumbnail_image_key=item.get("thumbnailImageKey"),
             created_at=item.get("createdAt"),
             updated_at=item.get("updatedAt"),

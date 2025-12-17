@@ -1,4 +1,8 @@
-# AWS SDK for Python
+# NOTE: This file is for LOCAL DEVELOPMENT ONLY
+# Lambda deployment does NOT include these dependencies
+# AWS Lambda runtime already provides boto3/botocore
+
+# AWS SDK for Python (for local development/testing - Lambda includes this)
 boto3==1.35.71
 botocore==1.35.71
 

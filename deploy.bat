@@ -13,11 +13,7 @@ REM Create package directory
 echo Creating package directory...
 mkdir package
 
-REM Install dependencies into package directory
-echo Installing dependencies...
-pip install -r requirements.txt -t package\ --upgrade
-
-REM Copy source code
+REM Copy source code (no dependencies needed - Lambda runtime includes boto3)
 echo Copying source code...
 xcopy /E /I /Y src package\src
 

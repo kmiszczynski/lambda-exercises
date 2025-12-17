@@ -75,6 +75,7 @@ class ExerciseService:
             difficulty_level=entity.difficulty_level,
             image_url=image_url,
             image_url_expiration=image_expiration,
+            instructions=entity.instructions,
         )
 
         # Generate presigned URL for thumbnail if it exists
