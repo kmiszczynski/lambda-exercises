@@ -15,6 +15,7 @@ class ExerciseEntity:
     image_key: str
     instructions: Optional[str] = None
     thumbnail_image_key: Optional[str] = None
+    instruction_video_key: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
@@ -36,6 +37,7 @@ class ExerciseEntity:
             image_key=item.get("imageKey", ""),
             instructions=item.get("instructions"),
             thumbnail_image_key=item.get("thumbnailImageKey"),
+            instruction_video_key=item.get("instructionVideoKey"),
             created_at=item.get("createdAt"),
             updated_at=item.get("updatedAt"),
         )

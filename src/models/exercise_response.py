@@ -17,6 +17,8 @@ class ExerciseResponse:
     instructions: Optional[str] = None
     thumbnail_image_url: Optional[str] = None
     thumbnail_image_url_expiration: Optional[str] = None
+    instruction_video_url: Optional[str] = None
+    instruction_video_url_expiration: Optional[str] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization.
@@ -40,5 +42,9 @@ class ExerciseResponse:
             result["thumbnailImageUrl"] = self.thumbnail_image_url
         if self.thumbnail_image_url_expiration:
             result["thumbnailImageUrlExpiration"] = self.thumbnail_image_url_expiration
+        if self.instruction_video_url:
+            result["instructionVideoUrl"] = self.instruction_video_url
+        if self.instruction_video_url_expiration:
+            result["instructionVideoUrlExpiration"] = self.instruction_video_url_expiration
 
         return result

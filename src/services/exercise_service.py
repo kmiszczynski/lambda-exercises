@@ -117,4 +117,12 @@ class ExerciseService:
             response.thumbnail_image_url = thumbnail_url
             response.thumbnail_image_url_expiration = thumbnail_expiration
 
+        # Generate presigned URL for instruction video if it exists
+        if entity.instruction_video_key and entity.instruction_video_key.strip():
+            video_url, video_expiration = self.s3_service.generate_presigned_url(
+                entity.instruction_video_key
+            )
+            response.instruction_video_url = video_url
+            response.instruction_video_url_expiration = video_expiration
+
         return response
