@@ -56,6 +56,37 @@ class ExerciseService:
         logger.info(f"Successfully converted {len(responses)} exercises to responses")
         return responses
 
+    def get_exercise_by_id(self, exercise_id: str) -> ExerciseResponse | None:
+        """Retrieve a single exercise by ID with presigned URLs.
+
+        Args:
+            exercise_id: The exercise ID to retrieve
+
+        Returns:
+            ExerciseResponse with presigned S3 URLs, or None if not found
+
+        Raises:
+            ServiceException: If retrieval or conversion fails
+        """
+        logger.info(f"Fetching exercise with ID: {exercise_id}")
+
+        entity = self.dynamodb_service.get_exercise_by_id(exercise_id)
+
+        if not entity:
+            logger.info(f"Exercise not found: {exercise_id}")
+            return None
+
+        try:
+            response = self._convert_to_response(entity)
+            logger.info(f"Successfully converted exercise to response: {exercise_id}")
+            return response
+        except Exception as e:
+            logger.error(
+                f"Failed to convert exercise entity to response for exerciseId: {exercise_id}",
+                exc_info=True,
+            )
+            raise
+
     def _convert_to_response(self, entity: ExerciseEntity) -> ExerciseResponse:
         """Convert ExerciseEntity to ExerciseResponse with presigned URLs.
 

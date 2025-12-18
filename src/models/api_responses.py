@@ -26,10 +26,27 @@ class ExerciseDataWrapper:
 
 
 @dataclass
+class SingleExerciseDataWrapper:
+    """Wrapper for single exercise data in the response."""
+
+    exercise: ExerciseResponse
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization.
+
+        Returns:
+            Dictionary with single exercise data
+        """
+        return {
+            "exercise": self.exercise.to_dict(),
+        }
+
+
+@dataclass
 class ApiSuccessResponse:
     """Success response structure."""
 
-    data: ExerciseDataWrapper
+    data: ExerciseDataWrapper | SingleExerciseDataWrapper
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization.

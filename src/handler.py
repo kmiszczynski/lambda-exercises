@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict
 
 from .exceptions import ServiceException
-from .models import ApiSuccessResponse, ApiErrorResponse, ErrorDetail, ExerciseDataWrapper
+from .models import ApiSuccessResponse, ApiErrorResponse, ErrorDetail, ExerciseDataWrapper, SingleExerciseDataWrapper
 from .services import ExerciseService
 
 # Configure logging
@@ -29,6 +29,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Handle API Gateway requests for exercises.
 
     This handler processes GET requests and returns exercise data with presigned S3 URLs.
+    Supports two routes:
+    - GET /exercises - Returns all exercises
+    - GET /exercises/{exercise_id} - Returns a single exercise by ID
 
     Args:
         event: API Gateway proxy request event
@@ -54,15 +57,41 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 request_id=request_id,
             )
 
-        # Get all exercises
-        exercises = exercise_service.get_all_exercises()
+        # Check for path parameters
+        path_parameters = event.get("pathParameters", {}) or {}
+        exercise_id = path_parameters.get("exercise_id")
 
-        # Build success response
-        data_wrapper = ExerciseDataWrapper(exercises=exercises)
-        success_response = ApiSuccessResponse(data=data_wrapper)
+        # Route based on presence of exercise_id
+        if exercise_id:
+            # Get single exercise by ID
+            logger.info(f"Fetching single exercise: {exercise_id}")
+            exercise = exercise_service.get_exercise_by_id(exercise_id)
 
-        logger.info(f"Successfully processed request - Returned {len(exercises)} exercises")
-        return _build_success_response(status_code=200, data=success_response)
+            if not exercise:
+                logger.warning(f"Exercise not found: {exercise_id}")
+                return _build_error_response(
+                    status_code=404,
+                    error_code="EXERCISE_NOT_FOUND",
+                    message=f"Exercise with ID '{exercise_id}' not found",
+                    request_id=request_id,
+                )
+
+            # Build success response for single exercise
+            data_wrapper = SingleExerciseDataWrapper(exercise=exercise)
+            success_response = ApiSuccessResponse(data=data_wrapper)
+
+            logger.info(f"Successfully processed request - Returned exercise: {exercise_id}")
+            return _build_success_response(status_code=200, data=success_response)
+        else:
+            # Get all exercises
+            exercises = exercise_service.get_all_exercises()
+
+            # Build success response
+            data_wrapper = ExerciseDataWrapper(exercises=exercises)
+            success_response = ApiSuccessResponse(data=data_wrapper)
+
+            logger.info(f"Successfully processed request - Returned {len(exercises)} exercises")
+            return _build_success_response(status_code=200, data=success_response)
 
     except ServiceException as e:
         logger.error(f"Service error occurred: {e.error_code} - {e.message}", exc_info=True)

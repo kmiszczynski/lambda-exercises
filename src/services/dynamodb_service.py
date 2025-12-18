@@ -74,3 +74,36 @@ class DynamoDbService:
         except Exception as e:
             logger.error("Unexpected error while scanning exercises", exc_info=True)
             raise DynamoDbServiceException(f"Unexpected error retrieving exercises: {str(e)}")
+
+    def get_exercise_by_id(self, exercise_id: str) -> ExerciseEntity | None:
+        """Retrieve a single exercise by its ID from DynamoDB.
+
+        Args:
+            exercise_id: The exercise ID to retrieve
+
+        Returns:
+            ExerciseEntity if found, None otherwise
+
+        Raises:
+            DynamoDbServiceException: If get_item operation fails
+        """
+        logger.info(f"Retrieving exercise with ID: {exercise_id}")
+
+        try:
+            response = self.table.get_item(Key={"exerciseId": exercise_id})
+            item = response.get("Item")
+
+            if not item:
+                logger.info(f"Exercise not found with ID: {exercise_id}")
+                return None
+
+            entity = ExerciseEntity.from_dynamodb_item(item)
+            logger.info(f"Successfully retrieved exercise: {exercise_id}")
+            return entity
+
+        except (BotoCoreError, ClientError) as e:
+            logger.error(f"DynamoDB error while retrieving exercise {exercise_id}", exc_info=True)
+            raise DynamoDbServiceException(f"Failed to retrieve exercise from DynamoDB: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error while retrieving exercise {exercise_id}", exc_info=True)
+            raise DynamoDbServiceException(f"Unexpected error retrieving exercise: {str(e)}")
