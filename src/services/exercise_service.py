@@ -96,18 +96,19 @@ class ExerciseService:
         Returns:
             ExerciseResponse with presigned URLs
         """
-        # Generate presigned URL for main image
-        image_url, image_expiration = self.s3_service.generate_presigned_url(entity.image_key)
-
         response = ExerciseResponse(
             exercise_id=entity.exercise_id,
             name=entity.name,
             description=entity.description,
             difficulty_level=entity.difficulty_level,
-            image_url=image_url,
-            image_url_expiration=image_expiration,
             instructions=entity.instructions,
         )
+
+        # Generate presigned URL for main image if it exists
+        if entity.image_key and entity.image_key.strip():
+            image_url, image_expiration = self.s3_service.generate_presigned_url(entity.image_key)
+            response.image_url = image_url
+            response.image_url_expiration = image_expiration
 
         # Generate presigned URL for thumbnail if it exists
         if entity.thumbnail_image_key and entity.thumbnail_image_key.strip():

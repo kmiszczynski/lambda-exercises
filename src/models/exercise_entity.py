@@ -12,7 +12,7 @@ class ExerciseEntity:
     name: str
     description: str
     difficulty_level: str
-    image_key: str
+    image_key: Optional[str] = None
     instructions: Optional[str] = None
     thumbnail_image_key: Optional[str] = None
     instruction_video_key: Optional[str] = None
@@ -34,7 +34,7 @@ class ExerciseEntity:
             name=item.get("name", ""),
             description=item.get("description", ""),
             difficulty_level=item.get("difficultyLevel", ""),
-            image_key=item.get("imageKey", ""),
+            image_key=item.get("imageKey"),
             instructions=item.get("instructions"),
             thumbnail_image_key=item.get("thumbnailImageKey"),
             instruction_video_key=item.get("instructionVideoKey"),

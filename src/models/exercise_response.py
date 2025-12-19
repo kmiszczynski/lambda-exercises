@@ -12,8 +12,8 @@ class ExerciseResponse:
     name: str
     description: str
     difficulty_level: str
-    image_url: str
-    image_url_expiration: str
+    image_url: Optional[str] = None
+    image_url_expiration: Optional[str] = None
     instructions: Optional[str] = None
     thumbnail_image_url: Optional[str] = None
     thumbnail_image_url_expiration: Optional[str] = None
@@ -31,11 +31,13 @@ class ExerciseResponse:
             "name": self.name,
             "description": self.description,
             "difficultyLevel": self.difficulty_level,
-            "imageUrl": self.image_url,
-            "imageUrlExpiration": self.image_url_expiration,
         }
 
         # Only include optional fields if they exist
+        if self.image_url:
+            result["imageUrl"] = self.image_url
+        if self.image_url_expiration:
+            result["imageUrlExpiration"] = self.image_url_expiration
         if self.instructions:
             result["instructions"] = self.instructions
         if self.thumbnail_image_url:
