@@ -1,7 +1,7 @@
 """DynamoDB service for retrieving exercise data."""
 
 import logging
-from typing import List
+from typing import List, Optional
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
@@ -26,8 +26,11 @@ class DynamoDbService:
         self.table = self.dynamodb.Table(config.table_name)
         logger.info(f"DynamoDbService initialized - Table: {config.table_name}")
 
-    def get_all_exercises(self) -> List[ExerciseEntity]:
-        """Retrieve all exercises from DynamoDB.
+    def get_all_exercises(self, difficulty_level: Optional[str] = None) -> List[ExerciseEntity]:
+        """Retrieve all exercises from DynamoDB, optionally filtered by difficulty level.
+
+        Args:
+            difficulty_level: Optional difficulty level to filter by (e.g., "easy", "medium", "hard")
 
         Returns:
             List of ExerciseEntity objects
@@ -35,13 +38,21 @@ class DynamoDbService:
         Raises:
             DynamoDbServiceException: If scan operation fails
         """
-        logger.info("Scanning DynamoDB table for all exercises")
+        if difficulty_level:
+            logger.info(f"Scanning DynamoDB table for exercises with difficultyLevel: {difficulty_level}")
+        else:
+            logger.info("Scanning DynamoDB table for all exercises")
 
         try:
             exercises = []
 
             # Use scan with pagination
             scan_kwargs = {}
+
+            # Add filter expression if difficulty_level is provided
+            if difficulty_level:
+                scan_kwargs["FilterExpression"] = "difficultyLevel = :difficulty"
+                scan_kwargs["ExpressionAttributeValues"] = {":difficulty": difficulty_level}
 
             while True:
                 response = self.table.scan(**scan_kwargs)

@@ -30,8 +30,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     This handler processes GET requests and returns exercise data with presigned S3 URLs.
     Supports two routes:
-    - GET /exercises - Returns all exercises
+    - GET /exercises - Returns all exercises (optionally filtered by difficultyLevel query param)
     - GET /exercises/{exercise_id} - Returns a single exercise by ID
+
+    Query Parameters:
+    - difficultyLevel: Filter exercises by difficulty (e.g., "easy", "medium", "hard")
 
     Args:
         event: API Gateway proxy request event
@@ -61,6 +64,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         path_parameters = event.get("pathParameters", {}) or {}
         exercise_id = path_parameters.get("exercise_id")
 
+        # Check for query parameters
+        query_parameters = event.get("queryStringParameters", {}) or {}
+        difficulty_level = query_parameters.get("difficultyLevel")
+
         # Route based on presence of exercise_id
         if exercise_id:
             # Get single exercise by ID
@@ -83,8 +90,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             logger.info(f"Successfully processed request - Returned exercise: {exercise_id}")
             return _build_success_response(status_code=200, data=success_response)
         else:
-            # Get all exercises
-            exercises = exercise_service.get_all_exercises()
+            # Get all exercises, optionally filtered by difficulty level
+            exercises = exercise_service.get_all_exercises(difficulty_level=difficulty_level)
 
             # Build success response
             data_wrapper = ExerciseDataWrapper(exercises=exercises)

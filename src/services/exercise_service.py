@@ -1,9 +1,9 @@
 """Exercise service for business logic."""
 
 import logging
-from typing import List
+from typing import List, Optional
 
-from ..models import ExerciseEntity, ExerciseResponse
+from ..models import ExerciseEntity, ExerciseResponse, ExerciseListItemResponse
 from .dynamodb_service import DynamoDbService
 from .s3_service import S3PresignedUrlService
 
@@ -28,32 +28,38 @@ class ExerciseService:
         self.s3_service = s3_service or S3PresignedUrlService()
         logger.info("ExerciseService initialized")
 
-    def get_all_exercises(self) -> List[ExerciseResponse]:
-        """Retrieve all exercises with presigned URLs.
+    def get_all_exercises(self, difficulty_level: Optional[str] = None) -> List[ExerciseListItemResponse]:
+        """Retrieve all exercises with minimal data for list view.
+
+        Args:
+            difficulty_level: Optional difficulty level to filter by (e.g., "easy", "medium", "hard")
 
         Returns:
-            List of ExerciseResponse objects with presigned S3 URLs
+            List of ExerciseListItemResponse objects with only essential fields
 
         Raises:
             ServiceException: If retrieval or conversion fails
         """
-        logger.info("Fetching all exercises")
+        if difficulty_level:
+            logger.info(f"Fetching exercises with difficultyLevel: {difficulty_level}")
+        else:
+            logger.info("Fetching all exercises")
 
-        entities = self.dynamodb_service.get_all_exercises()
+        entities = self.dynamodb_service.get_all_exercises(difficulty_level=difficulty_level)
         responses = []
 
         for entity in entities:
             try:
-                response = self._convert_to_response(entity)
+                response = self._convert_to_list_item_response(entity)
                 responses.append(response)
             except Exception as e:
                 logger.error(
-                    f"Failed to convert exercise entity to response for exerciseId: {entity.exercise_id}",
+                    f"Failed to convert exercise entity to list item response for exerciseId: {entity.exercise_id}",
                     exc_info=True,
                 )
                 # Continue processing other exercises
 
-        logger.info(f"Successfully converted {len(responses)} exercises to responses")
+        logger.info(f"Successfully converted {len(responses)} exercises to list item responses")
         return responses
 
     def get_exercise_by_id(self, exercise_id: str) -> ExerciseResponse | None:
@@ -125,5 +131,30 @@ class ExerciseService:
             )
             response.instruction_video_url = video_url
             response.instruction_video_url_expiration = video_expiration
+
+        return response
+
+    def _convert_to_list_item_response(self, entity: ExerciseEntity) -> ExerciseListItemResponse:
+        """Convert ExerciseEntity to ExerciseListItemResponse with minimal fields.
+
+        Args:
+            entity: ExerciseEntity from DynamoDB
+
+        Returns:
+            ExerciseListItemResponse with only exerciseId, name, difficultyLevel, and thumbnail
+        """
+        response = ExerciseListItemResponse(
+            exercise_id=entity.exercise_id,
+            name=entity.name,
+            difficulty_level=entity.difficulty_level,
+        )
+
+        # Generate presigned URL for thumbnail if it exists
+        if entity.thumbnail_image_key and entity.thumbnail_image_key.strip():
+            thumbnail_url, thumbnail_expiration = self.s3_service.generate_presigned_url(
+                entity.thumbnail_image_key
+            )
+            response.thumbnail_image_url = thumbnail_url
+            response.thumbnail_image_url_expiration = thumbnail_expiration
 
         return response

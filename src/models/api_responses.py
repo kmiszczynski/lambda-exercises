@@ -5,13 +5,14 @@ from datetime import datetime, timezone
 from typing import List
 
 from .exercise_response import ExerciseResponse
+from .exercise_list_item_response import ExerciseListItemResponse
 
 
 @dataclass
 class ExerciseDataWrapper:
-    """Wrapper for exercise data in the response."""
+    """Wrapper for exercise list data in the response."""
 
-    exercises: List[ExerciseResponse]
+    exercises: List[ExerciseListItemResponse]
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization.
